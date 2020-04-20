@@ -99,8 +99,20 @@ public class DatadogGlobalConfiguration extends GlobalConfiguration {
     @DataBoundConstructor
     public DatadogGlobalConfiguration() {
         loadEnvVariables(); // Load environment variables
+        validateConfiguration();
         load(); // Load the persisted global configuration
     }
+
+    public void validateConfiguration(){
+        if(reportWith.equals(DEFAULT_REPORT_WITH_VALUE) && (targetApiKey == null || Secret.toString(targetApiKey).isEmpty())) {
+            logger.severe("Datadog API Key is not set properly");
+        }
+        if((!reportWith.equals(DEFAULT_REPORT_WITH_VALUE)) && (targetPort == null)) {
+            logger.severe("Datadog Target Port is not set properly");
+        }
+        //TODO: other validations
+    }
+
 
     private void loadEnvVariables(){
         String reportWithEnvVar = System.getenv(REPORT_WITH_PROPERTY);

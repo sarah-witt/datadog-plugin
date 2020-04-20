@@ -89,15 +89,10 @@ public class DatadogHttpClient implements DatadogClient {
     public static DatadogClient getInstance(String url, String logIntakeUrl, Secret apiKey){
         if(enableValidations){
             if (url == null || url.isEmpty()) {
-                logger.severe("Datadog Target URL is not set properly");
                 return null;
             }
             if (apiKey == null || Secret.toString(apiKey).isEmpty()){
-                logger.severe("Datadog API Key is not set properly");
                 return null;
-            }
-            if (logIntakeUrl == null || logIntakeUrl.isEmpty()){
-                logger.warning("Datadog Log Intake URL is not set properly");
             }
         }
 

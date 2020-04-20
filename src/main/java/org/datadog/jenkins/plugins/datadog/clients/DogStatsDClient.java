@@ -74,15 +74,10 @@ public class DogStatsDClient implements DatadogClient {
     public static DatadogClient getInstance(String hostname, Integer port, Integer logCollectionPort){
         if(enableValidations){
             if (hostname == null || hostname.isEmpty()) {
-                logger.severe("Datadog Target URL is not set properly");
                 return null;
             }
             if (port == null) {
-                logger.severe("Datadog Target Port is not set properly");
                 return null;
-            }
-            if (isCollectBuildLogEnabled() && logCollectionPort == null) {
-                logger.warning("Datadog Log Collection Port is not set properly");
             }
         }
 

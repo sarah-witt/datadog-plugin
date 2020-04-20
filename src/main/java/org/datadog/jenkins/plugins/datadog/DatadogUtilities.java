@@ -55,7 +55,9 @@ public class DatadogUtilities {
      */
     public static DatadogGlobalConfiguration getDatadogGlobalDescriptor() {
         try {
-            return ExtensionList.lookup(DatadogGlobalConfiguration.class).get(DatadogGlobalConfiguration.class);
+            DatadogGlobalConfiguration config = ExtensionList.lookup(DatadogGlobalConfiguration.class).get(DatadogGlobalConfiguration.class);
+            //config.validateConfiguration();
+            return config;
         } catch(NullPointerException e){
             // It can only throw a NullPointerException when running tests
             return null;
