@@ -233,8 +233,8 @@ public class DatadogGlobalConfiguration extends GlobalConfiguration {
      * screen.
      */
     public FormValidation doCheckTargetApiURL(@QueryParameter("targetApiURL") final String targetApiURL) {
-        if(StringUtils.isNotBlank(targetApiURL) && DatadogHttpClient.validateTargetApiURL(targetApiURL)) {
-            return FormValidation.error("The field must be configured in the form <http|https>://<url>/ Hiiii");
+        if(StringUtils.isNotBlank(targetApiURL) && !DatadogHttpClient.validateTargetApiURL(targetApiURL)) {
+            return FormValidation.error("The field must be configured in the form <http|https>://<url>/");
         }
 
         return FormValidation.ok("Valid URL!!!");

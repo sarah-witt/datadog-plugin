@@ -148,7 +148,6 @@ public class DatadogHttpClient implements DatadogClient {
 
     public static boolean validateTargetLogIntakeURL(String logIntakeUrl) {
         return logIntakeUrl.contains("http");
-        //logger.severe("The field (targetLogIntakeURL) must be configured in the form <http|https>://<url>/");
     }
 
     public String getUrl() {
