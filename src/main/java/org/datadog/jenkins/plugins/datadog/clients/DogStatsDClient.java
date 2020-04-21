@@ -114,6 +114,7 @@ public class DogStatsDClient implements DatadogClient {
         }
         return;
     }
+
     /**
      * reinitialize the dogStatsD Client
      * @param force - force to reinitialize

@@ -274,11 +274,7 @@ public class DatadogGlobalConfiguration extends GlobalConfiguration {
         return FormValidation.ok("Valid Host");
     }
 
-    private boolean validateTargetPort(String targetPort) {
-        if(!DatadogClient.ClientType.DSD.name().equals(reportWith)) {
-            return true;
-        }
-
+     public static boolean validatePort(String targetPort) {
         return StringUtils.isNotBlank(targetPort) && StringUtils.isNumeric(targetPort);
     }
 
@@ -288,19 +284,11 @@ public class DatadogGlobalConfiguration extends GlobalConfiguration {
      * screen.
      */
     public FormValidation doCheckTargetPort(@QueryParameter("targetPort") final String targetPort) {
-        if (!validateTargetPort(targetPort)) {
+        if (!validatePort(targetPort)) {
             return FormValidation.error("Invalid Port");
         }
 
         return FormValidation.ok("Valid Port");
-    }
-
-    private boolean validateTargetLogCollectionPort(String targetLogCollectionPort) {
-        if(!DatadogClient.ClientType.DSD.name().equals(reportWith) || !collectBuildLogs) {
-            return true;
-        }
-
-        return StringUtils.isNotBlank(targetLogCollectionPort) && StringUtils.isNumeric(targetLogCollectionPort);
     }
 
     /**
@@ -309,8 +297,8 @@ public class DatadogGlobalConfiguration extends GlobalConfiguration {
      * screen.
      */
     public FormValidation doCheckTargetLogCollectionPort(@QueryParameter("targetLogCollectionPort") final String targetLogCollectionPort) {
-        if (!validateTargetLogCollectionPort(targetLogCollectionPort)) {
-            return FormValidation.error("Invalid Port");
+        if (!validatePort(targetLogCollectionPort) && collectBuildLogs) {
+            return FormValidation.error("Invalid Log Collection Port");
         }
 
         return FormValidation.ok("Valid Port");
@@ -384,39 +372,9 @@ public class DatadogGlobalConfiguration extends GlobalConfiguration {
             this.setEmitSystemEvents(formData.getBoolean("emitSystemEvents"));
             this.setCollectBuildLogs(formData.getBoolean("collectBuildLogs"));
 
-            if(!validateTargetPort(portStr)){
-                logger.severe("Invalid Port");
-                return false;
-            }
-            if(!validateTargetLogCollectionPort(logCollectionPortStr)){
-                logger.severe("Invalid log collection port");
-                return false;
-            }
+
             if(StringUtils.isNotBlank(this.getHostname()) && !DatadogUtilities.isValidHostname(this.getHostname())){
                 throw new FormException("Your hostname is invalid, likely because it violates the format set in RFC 1123", "hostname");
-            }
-            // Run connection validation if applicable
-            if(DatadogClient.ClientType.HTTP.name().equals(this.getReportWith()) &&
-                    !DatadogHttpClient.validateDefaultIntakeConnection(this.getTargetApiURL(), this.getTargetApiKey())){
-
-                // If a client instance exist we set the connectionBroken attribute to true.
-                DatadogClient client = DatadogHttpClient.getInstance(this.getTargetApiURL(),
-                        this.getTargetLogIntakeURL(), this.getTargetApiKey());
-                if(client != null){
-                    client.setDefaultIntakeConnectionBroken(true);
-                }
-                return false;
-            }
-            if(DatadogClient.ClientType.HTTP.name().equals(this.getReportWith()) &&
-                    !DatadogHttpClient.validateLogIntakeConnection(this.getTargetLogIntakeURL(), this.getTargetApiKey())){
-
-                // If a client instance exist we set the connectionBroken attribute to true.
-                DatadogClient client = DatadogHttpClient.getInstance(this.getTargetApiURL(),
-                        this.getTargetLogIntakeURL(), this.getTargetApiKey());
-                if(client != null){
-                    client.setLogIntakeConnectionBroken(true);
-                }
-                return false;
             }
 
             //When form is saved....

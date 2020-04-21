@@ -130,11 +130,11 @@ public class DatadogHttpClient implements DatadogClient {
         } else if (validateTargetApiURL(httpInstance.getLogIntakeUrl())) {
             logger.warning("The field (targetLogIntakeURL) must be configured in the form <http|https>://<url>/");
         }
-        if (validateDefaultIntakeConnection(httpInstance.getUrl(), httpInstance.getApiKey())) {
+        if (!validateDefaultIntakeConnection(httpInstance.getUrl(), httpInstance.getApiKey())) {
             instance.setDefaultIntakeConnectionBroken(true);
             logger.severe("Connection broken, please double check both your API URL and Key");
         }
-        if (validateLogIntakeConnection(httpInstance.getLogIntakeUrl(), httpInstance.getApiKey())) {
+        if (!validateLogIntakeConnection(httpInstance.getLogIntakeUrl(), httpInstance.getApiKey())) {
             instance.setLogIntakeConnectionBroken(true);
             logger.severe("Connection broken, please double check both your Log Intake URL and Key");
         }
