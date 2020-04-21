@@ -87,36 +87,68 @@ public class DatadogHttpClient implements DatadogClient {
      */
     @SuppressFBWarnings(value="DC_DOUBLECHECK")
     public static DatadogClient getInstance(String url, String logIntakeUrl, Secret apiKey){
-        if(enableValidations){
-            if (url == null || url.isEmpty()) {
-                return null;
-            }
-            if (apiKey == null || Secret.toString(apiKey).isEmpty()){
-                return null;
-            }
-        }
 
-        if(instance == null){
-            synchronized (DatadogHttpClient.class) {
-                if(instance == null){
-                    instance = new DatadogHttpClient(url, logIntakeUrl, apiKey);
+        // If the configuration has not changed, return the current instance without validation
+        // since we've already validated and/or errored about the data
+        DatadogHttpClient httpInstance = (DatadogHttpClient) instance;
+        if (url.equals(httpInstance.getUrl()) && logIntakeUrl.equals(httpInstance.getLogIntakeUrl()) && apiKey.equals(httpInstance.getApiKey())){
+            return instance;
+        }
+        else {
+            instance = new DatadogHttpClient(url, logIntakeUrl, apiKey);
+            if(enableValidations){
+                try {
+                    validateCongiguration();
+                } catch(Exception e){
+                    logger.severe(e.getMessage());
+                    return null;
                 }
             }
+            return instance;
         }
-
-        // We reset params just in case we change values
-        // Note that we don't validate the connection at this point.
-        // Run validate to test the connection instead.
-        instance.setApiKey(apiKey);
-        instance.setUrl(url);
-        instance.setLogIntakeUrl(logIntakeUrl);
-        return instance;
     }
 
     private DatadogHttpClient(String url, String logIntakeUrl, Secret apiKey) {
         this.url = url;
         this.apiKey = apiKey;
         this.logIntakeUrl = logIntakeUrl;
+    }
+
+     //TODO: remove IO
+    public static void validateCongiguration() throws RuntimeException, IOException {
+        DatadogHttpClient httpInstance = (DatadogHttpClient) instance;
+        if (httpInstance.getUrl() == null || httpInstance.getUrl().isEmpty() || !httpInstance.validateTargetApiURL(httpInstance.getUrl())) {
+            throw new RuntimeException("Datadog Target URL is not set properly");
+        } else if (validateTargetApiURL(httpInstance.getUrl())) {
+            throw new RuntimeException("The field must be configured in the form <http|https>://<url>/");
+        }
+        if (httpInstance.getApiKey() == null || Secret.toString(httpInstance.getApiKey()).isEmpty()){
+            throw new RuntimeException("Datadog API Key is not set properly");
+        }
+        if (httpInstance.getLogIntakeUrl() == null || httpInstance.getLogIntakeUrl().isEmpty()){
+            logger.warning("Datadog Log Intake URL is not set properly");
+        } else if (validateTargetApiURL(httpInstance.getLogIntakeUrl())) {
+            logger.warning("The field (targetLogIntakeURL) must be configured in the form <http|https>://<url>/");
+        }
+        if (validateDefaultIntakeConnection(httpInstance.getUrl(), httpInstance.getApiKey())) {
+            instance.setDefaultIntakeConnectionBroken(true);
+            logger.severe("Connection broken, please double check both your API URL and Key");
+        }
+        if (validateLogIntakeConnection(httpInstance.getLogIntakeUrl(), httpInstance.getApiKey())) {
+            instance.setLogIntakeConnectionBroken(true);
+            logger.severe("Connection broken, please double check both your Log Intake URL and Key");
+        }
+        return;
+    }
+
+    public static boolean validateTargetApiURL(String targetApiURL) {
+        //TODO: Add more validation
+        return targetApiURL.contains("http");
+    }
+
+    public static boolean validateTargetLogIntakeURL(String logIntakeUrl) {
+        return logIntakeUrl.contains("http");
+        //logger.severe("The field (targetLogIntakeURL) must be configured in the form <http|https>://<url>/");
     }
 
     public String getUrl() {

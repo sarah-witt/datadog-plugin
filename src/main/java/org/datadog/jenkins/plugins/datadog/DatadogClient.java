@@ -85,6 +85,13 @@ public interface DatadogClient {
     public void setLogIntakeConnectionBroken(boolean logIntakeConnectionBroken);
 
     /**
+     Validates that the configuration for this instance is correct and returns the appropriate error message
+     */
+    public static void validateCongiguration() throws RuntimeException {
+        throw new RuntimeException("Not implemented.");
+    }
+
+    /**
      * Sends an event to the Datadog API, including the event payload.
      *
      * @param event - a DatadogEvent object
