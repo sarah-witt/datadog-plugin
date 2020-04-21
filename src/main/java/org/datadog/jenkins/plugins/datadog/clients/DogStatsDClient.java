@@ -75,7 +75,7 @@ public class DogStatsDClient implements DatadogClient {
         // If the configuration has not changed, return the current instance without validation
         // since we've already validated and/or errored about the data
         DogStatsDClient httpInstance = (DogStatsDClient) instance;
-        if (hostname.equals(httpInstance.getHostname()) && port.equals(httpInstance.getPort()) && logCollectionPort.equals(httpInstance.getLogCollectionPort())){
+        if ((hostname != null && hostname.equals(httpInstance.getHostname())) && (port != null && port.equals(httpInstance.getPort())) && (logCollectionPort != null && logCollectionPort.equals(httpInstance.getLogCollectionPort()))){
             return instance;
         }
         else {

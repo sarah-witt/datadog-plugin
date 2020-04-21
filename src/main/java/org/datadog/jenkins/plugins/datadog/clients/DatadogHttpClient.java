@@ -71,9 +71,9 @@ public class DatadogHttpClient implements DatadogClient {
     private String jenkinsVersion = null;
     private String pluginVersion = null;
 
-    private String url;
-    private String logIntakeUrl;
-    private Secret apiKey;
+    private String url = null;
+    private String logIntakeUrl = null;
+    private Secret apiKey = null;
     private boolean defaultIntakeConnectionBroken = false;
     private boolean logIntakeConnectionBroken = false;
 
@@ -91,12 +91,11 @@ public class DatadogHttpClient implements DatadogClient {
         // If the configuration has not changed, return the current instance without validation
         // since we've already validated and/or errored about the data
         DatadogHttpClient httpInstance = (DatadogHttpClient) instance;
-        if (url.equals(httpInstance.getUrl()) && logIntakeUrl.equals(httpInstance.getLogIntakeUrl()) && apiKey.equals(httpInstance.getApiKey())){
+        if ((url != null && url.equals(httpInstance.getUrl())) && (logIntakeUrl != null && logIntakeUrl.equals(httpInstance.getLogIntakeUrl())) && (apiKey != null && apiKey.equals(httpInstance.getApiKey()))){
             return instance;
-        }
-        else {
+        } else {
             instance = new DatadogHttpClient(url, logIntakeUrl, apiKey);
-            if(enableValidations){
+            if (enableValidations) {
                 try {
                     validateCongiguration();
                 } catch(Exception e){

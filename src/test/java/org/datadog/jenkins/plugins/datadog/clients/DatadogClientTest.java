@@ -40,7 +40,7 @@ public class DatadogClientTest {
     @Test
     public void testIncrementCountAndFlush() throws IOException, InterruptedException {
         DatadogHttpClient.enableValidations = false;
-        DatadogClient client = DatadogHttpClient.getInstance("test", null, null);
+        DatadogClient client = DatadogHttpClient.getInstance("test", "test", null);
         Map<String, Set<String>> tags1 = new HashMap<>();
         tags1 = DatadogClientStub.addTagToMap(tags1, "tag1", "value");
         tags1 = DatadogClientStub.addTagToMap(tags1, "tag2", "value");
