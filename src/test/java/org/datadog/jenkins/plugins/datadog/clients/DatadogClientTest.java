@@ -75,33 +75,6 @@ public class DatadogClientTest {
     }
 
     @Test
-    public void testHttpClientGetInstanceApiUrlNull() throws IOException {
-        /*
-        exceptionRule.expect(RuntimeException.class);
-        exceptionRule.expectMessage("Datadog Target URL is not set properly");
-        DatadogHttpClient.enableValidations = false;
-        Secret secret = mock(Secret.class);
-        when(Secret.fromString("test")).thenReturn(Secret("test"));
-
-        DatadogClient client = DatadogHttpClient.getInstance(null, "test", null);
-        DatadogHttpClient.validateCongiguration();
-        */
-    }
-
-    @Test
-    public void testHttpClientGetInstanceIntakeUrl() throws IOException {
-        //TODO: Mock secret through client factory
-        /*
-        exceptionRule.expect(RuntimeException.class);
-        exceptionRule.expectMessage("Datadog API Key is not set properly");
-        DatadogHttpClient.enableValidations = false;
-        Secret apiKey = Secret.fromString(null);
-        DatadogClient client = DatadogHttpClient.getInstance("http", null, apiKey);
-        DatadogHttpClient.validateCongiguration();
-        */
-    }
-
-    @Test
     public void testDogstatsDClientGetInstanceTargetUrl() throws IOException {
         exceptionRule.expect(RuntimeException.class);
         exceptionRule.expectMessage("Datadog Target Port is not set properly");

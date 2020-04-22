@@ -92,7 +92,9 @@ public class DatadogHttpClient implements DatadogClient {
         // If the configuration has not changed, return the current instance without validation
         // since we've already validated and/or errored about the data
         DatadogHttpClient httpInstance = (DatadogHttpClient) instance;
-        if (httpInstance != null && (StringUtils.equals(httpInstance.getLogIntakeUrl(), logIntakeUrl)) && (StringUtils.equals(httpInstance.getUrl(), url) && ((httpInstance.getApiKey() == null && apiKey == null) || httpInstance.getApiKey().equals(apiKey)))){
+        if (httpInstance != null && (StringUtils.equals(httpInstance.getLogIntakeUrl(), logIntakeUrl))
+        && (StringUtils.equals(httpInstance.getUrl(), url)
+        && ((httpInstance.getApiKey() == null && apiKey == null) || httpInstance.getApiKey().equals(apiKey)))){
             return instance;
         } else {
             DatadogHttpClient.instance = new DatadogHttpClient(url, logIntakeUrl, apiKey);
@@ -144,7 +146,6 @@ public class DatadogHttpClient implements DatadogClient {
     }
 
     public static boolean validateTargetURL(String targetApiURL) {
-        //TODO: Add more validation
         return targetApiURL.contains("http");
     }
 
@@ -181,7 +182,7 @@ public class DatadogHttpClient implements DatadogClient {
     }
 
     @Override
-    public void setPort(int port) {
+    public void setPort(Integer port) {
         // noop
     }
 
@@ -612,7 +613,7 @@ public class DatadogHttpClient implements DatadogClient {
         return this.jenkinsVersion;
     }
 
-    public static boolean isCollectBuildLogEnabled(){
+    private static boolean isCollectBuildLogEnabled(){
         return DatadogUtilities.getDatadogGlobalDescriptor() != null &&
                 DatadogUtilities.getDatadogGlobalDescriptor().isCollectBuildLogs();
     }

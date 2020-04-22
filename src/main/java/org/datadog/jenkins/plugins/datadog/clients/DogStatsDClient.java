@@ -392,7 +392,7 @@ public class DogStatsDClient implements DatadogClient {
         return true;
     }
 
-    public static boolean isCollectBuildLogEnabled(){
+    private static boolean isCollectBuildLogEnabled(){
         return DatadogUtilities.getDatadogGlobalDescriptor() != null &&
                 DatadogUtilities.getDatadogGlobalDescriptor().isCollectBuildLogs();
     }
