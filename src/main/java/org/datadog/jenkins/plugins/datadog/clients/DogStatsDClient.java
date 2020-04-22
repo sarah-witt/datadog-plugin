@@ -39,6 +39,7 @@ import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.*;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * This class is used to collect all methods that has to do with transmitting
@@ -46,7 +47,7 @@ import java.util.logging.*;
  */
 public class DogStatsDClient implements DatadogClient {
 
-    private static DatadogClient instance;
+    private static DatadogClient instance = null;
 
     private static final Logger logger = Logger.getLogger(DogStatsDClient.class.getName());
 
@@ -74,12 +75,14 @@ public class DogStatsDClient implements DatadogClient {
     public static DatadogClient getInstance(String hostname, Integer port, Integer logCollectionPort){
         // If the configuration has not changed, return the current instance without validation
         // since we've already validated and/or errored about the data
-        DogStatsDClient httpInstance = (DogStatsDClient) instance;
-        if ((hostname != null && hostname.equals(httpInstance.getHostname())) && (port != null && port.equals(httpInstance.getPort())) && (logCollectionPort != null && logCollectionPort.equals(httpInstance.getLogCollectionPort()))){
+        DogStatsDClient statsdInstance = (DogStatsDClient) instance;
+        if ((statsdInstance != null && StringUtils.equals(hostname, statsdInstance.getHostname())
+         && (((port == null) && (statsdInstance.getPort() == null)) || (null != port && port.equals(statsdInstance.getPort())))
+         && (((logCollectionPort == null) && (statsdInstance.getLogCollectionPort() == null)) || (null != logCollectionPort && logCollectionPort.equals(statsdInstance.getLogCollectionPort()))))){
             return instance;
         }
         else {
-            instance = new DogStatsDClient(hostname, port, logCollectionPort);
+            DogStatsDClient.instance = new DogStatsDClient(hostname, port, logCollectionPort);
             if(enableValidations){
                 try {
                     validateCongiguration();
@@ -102,14 +105,17 @@ public class DogStatsDClient implements DatadogClient {
     }
 
     public static void validateCongiguration() {
-        DogStatsDClient httpInstance = (DogStatsDClient) instance;
-        if (httpInstance.getHostname() == null || httpInstance.getHostname().isEmpty()) {
+        DogStatsDClient statsdInstance = (DogStatsDClient) instance;
+        if (statsdInstance.getHostname() == null || statsdInstance.getHostname().isEmpty()) {
             throw new RuntimeException("Datadog Target URL is not set properly");
         }
-        if (httpInstance.getPort() == null) {
+        if (!DatadogUtilities.isValidHostname(statsdInstance.getHostname())) {
+            logger.severe("Invalid Hostname. Your hostname is invalid, likely because it violates the format set in RFC 1123.");
+        }
+        if (statsdInstance.getPort() == null) {
             throw new RuntimeException("Datadog Target Port is not set properly");
         }
-        if (isCollectBuildLogEnabled() && httpInstance.getLogCollectionPort() == null) {
+        if (DogStatsDClient.isCollectBuildLogEnabled() && statsdInstance.getLogCollectionPort() == null) {
             throw new RuntimeException("Datadog Log Collection Port is not set properly");
         }
         return;
@@ -145,7 +151,7 @@ public class DogStatsDClient implements DatadogClient {
         if(this.ddLogger != null && !force){
             return true;
         }
-        if(!isCollectBuildLogEnabled() || this.logCollectionPort == null){
+        if(!DogStatsDClient.isCollectBuildLogEnabled() || this.logCollectionPort == null){
             return false;
         }
         try {
@@ -203,7 +209,7 @@ public class DogStatsDClient implements DatadogClient {
     }
 
     @Override
-    public void setPort(int port) {
+    public void setPort(Integer port) {
         this.port = port;
     }
 
@@ -386,7 +392,7 @@ public class DogStatsDClient implements DatadogClient {
         return true;
     }
 
-    private static boolean isCollectBuildLogEnabled(){
+    public static boolean isCollectBuildLogEnabled(){
         return DatadogUtilities.getDatadogGlobalDescriptor() != null &&
                 DatadogUtilities.getDatadogGlobalDescriptor().isCollectBuildLogs();
     }

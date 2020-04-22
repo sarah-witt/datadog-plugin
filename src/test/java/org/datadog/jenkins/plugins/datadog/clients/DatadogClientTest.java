@@ -26,8 +26,11 @@ THE SOFTWARE.
 package org.datadog.jenkins.plugins.datadog.clients;
 
 import org.datadog.jenkins.plugins.datadog.DatadogClient;
+
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -35,12 +38,102 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.*;
 
+
 public class DatadogClientTest {
+
+    @Rule
+    public ExpectedException exceptionRule = ExpectedException.none();
+
+    @Test
+    public void testHttpClientGetInstanceApiKey() throws IOException {
+        exceptionRule.expect(RuntimeException.class);
+        exceptionRule.expectMessage("Datadog API Key is not set properly");
+        DatadogHttpClient.enableValidations = false;
+        DatadogClient client = DatadogHttpClient.getInstance("http", "test", null);
+        DatadogHttpClient.validateCongiguration();
+    }
+
+    @Test
+    public void testHttpClientGetInstanceApiUrl() throws IOException {
+        exceptionRule.expect(RuntimeException.class);
+        exceptionRule.expectMessage("Datadog Target URL is not set properly");
+        DatadogHttpClient.enableValidations = false;
+        DatadogClient client = DatadogHttpClient.getInstance("", "test", null);
+        DatadogHttpClient.validateCongiguration();
+    }
+
+    @Test
+    public void testHttpClientGetInstanceEnableValidations() throws IOException {
+        try {
+            DatadogHttpClient.enableValidations = true;
+            DatadogClient client = DatadogHttpClient.getInstance("https", null, null);
+        } catch (RuntimeException e) {
+            Assert.assertEquals(e.getMessage(),"Datadog Target URL is not set properly");
+        }
+        DatadogHttpClient.enableValidations = true;
+        DatadogClient newClient = DatadogHttpClient.getInstance("https", null, null);
+    }
+
+    @Test
+    public void testHttpClientGetInstanceApiUrlNull() throws IOException {
+        /*
+        exceptionRule.expect(RuntimeException.class);
+        exceptionRule.expectMessage("Datadog Target URL is not set properly");
+        DatadogHttpClient.enableValidations = false;
+        Secret secret = mock(Secret.class);
+        when(Secret.fromString("test")).thenReturn(Secret("test"));
+
+        DatadogClient client = DatadogHttpClient.getInstance(null, "test", null);
+        DatadogHttpClient.validateCongiguration();
+        */
+    }
+
+    @Test
+    public void testHttpClientGetInstanceIntakeUrl() throws IOException {
+        //TODO: Mock secret through client factory
+        /*
+        exceptionRule.expect(RuntimeException.class);
+        exceptionRule.expectMessage("Datadog API Key is not set properly");
+        DatadogHttpClient.enableValidations = false;
+        Secret apiKey = Secret.fromString(null);
+        DatadogClient client = DatadogHttpClient.getInstance("http", null, apiKey);
+        DatadogHttpClient.validateCongiguration();
+        */
+    }
+
+    @Test
+    public void testDogstatsDClientGetInstanceTargetUrl() throws IOException {
+        exceptionRule.expect(RuntimeException.class);
+        exceptionRule.expectMessage("Datadog Target Port is not set properly");
+        DogStatsDClient.enableValidations = false;
+        DatadogClient client = DogStatsDClient.getInstance("test", null, null);
+        DogStatsDClient.validateCongiguration();
+    }
+
+    @Test
+    public void testDogstatsDClientGetInstanceEnableValidations() throws IOException {
+        try {
+            DogStatsDClient.enableValidations = true;
+            DatadogClient client = DogStatsDClient.getInstance("https", null, null);
+        } catch (RuntimeException e) {
+            Assert.assertEquals(e.getMessage(),"Datadog Target URL is not set properly");
+        }
+        DogStatsDClient.enableValidations = true;
+        DatadogClient newClient = DogStatsDClient.getInstance("https", null, null);
+    }
+
+    @Test
+    public void testDogstatsDClientGetInstanceTargetLogPort() throws IOException {
+        DogStatsDClient.enableValidations = false;
+        DatadogClient client = DogStatsDClient.getInstance("https", 8000, null);
+        DogStatsDClient.validateCongiguration();
+        Assert.assertTrue(true);
+    }
 
     @Test
     public void testIncrementCountAndFlush() throws IOException, InterruptedException {
         DatadogHttpClient.enableValidations = false;
-        DatadogClient client = DatadogHttpClient.getInstance("test", "test", null);
+        DatadogClient client = DatadogHttpClient.getInstance("test", null, null);
         Map<String, Set<String>> tags1 = new HashMap<>();
         tags1 = DatadogClientStub.addTagToMap(tags1, "tag1", "value");
         tags1 = DatadogClientStub.addTagToMap(tags1, "tag2", "value");

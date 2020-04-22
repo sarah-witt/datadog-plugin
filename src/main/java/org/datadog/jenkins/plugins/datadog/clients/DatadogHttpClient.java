@@ -47,6 +47,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * This class is used to collect all methods that has to do with transmitting
@@ -54,7 +55,7 @@ import java.util.logging.Logger;
  */
 public class DatadogHttpClient implements DatadogClient {
 
-    private static DatadogClient instance;
+    private static DatadogClient instance = null;
     private static final Logger logger = Logger.getLogger(DatadogHttpClient.class.getName());
 
     private static final String EVENT = "v1/events";
@@ -91,10 +92,10 @@ public class DatadogHttpClient implements DatadogClient {
         // If the configuration has not changed, return the current instance without validation
         // since we've already validated and/or errored about the data
         DatadogHttpClient httpInstance = (DatadogHttpClient) instance;
-        if ((url != null && url.equals(httpInstance.getUrl())) && (logIntakeUrl != null && logIntakeUrl.equals(httpInstance.getLogIntakeUrl())) && (apiKey != null && apiKey.equals(httpInstance.getApiKey()))){
+        if (httpInstance != null && (StringUtils.equals(httpInstance.getLogIntakeUrl(), logIntakeUrl)) && (StringUtils.equals(httpInstance.getUrl(), url) && ((httpInstance.getApiKey() == null && apiKey == null) || httpInstance.getApiKey().equals(apiKey)))){
             return instance;
         } else {
-            instance = new DatadogHttpClient(url, logIntakeUrl, apiKey);
+            DatadogHttpClient.instance = new DatadogHttpClient(url, logIntakeUrl, apiKey);
             if (enableValidations) {
                 try {
                     validateCongiguration();
@@ -113,21 +114,23 @@ public class DatadogHttpClient implements DatadogClient {
         this.logIntakeUrl = logIntakeUrl;
     }
 
-     //TODO: remove IO
+    //TODO: remove IO
     public static void validateCongiguration() throws RuntimeException, IOException {
         DatadogHttpClient httpInstance = (DatadogHttpClient) instance;
-        if (httpInstance.getUrl() == null || httpInstance.getUrl().isEmpty() || !httpInstance.validateTargetApiURL(httpInstance.getUrl())) {
+        if (httpInstance.getUrl() == null || httpInstance.getUrl().isEmpty() || !validateTargetURL(httpInstance.getUrl())) {
             throw new RuntimeException("Datadog Target URL is not set properly");
-        } else if (validateTargetApiURL(httpInstance.getUrl())) {
-            throw new RuntimeException("The field must be configured in the form <http|https>://<url>/");
         }
         if (httpInstance.getApiKey() == null || Secret.toString(httpInstance.getApiKey()).isEmpty()){
             throw new RuntimeException("Datadog API Key is not set properly");
         }
-        if (httpInstance.getLogIntakeUrl() == null || httpInstance.getLogIntakeUrl().isEmpty()){
+        if (validateTargetURL(httpInstance.getUrl())) {
+            throw new RuntimeException("Datadog Target URL must be configured in the form <http|https>://<url>/");
+        }
+        if (DatadogHttpClient.isCollectBuildLogEnabled() && (httpInstance.getLogIntakeUrl() == null || httpInstance.getLogIntakeUrl().isEmpty())){
             logger.warning("Datadog Log Intake URL is not set properly");
-        } else if (validateTargetApiURL(httpInstance.getLogIntakeUrl())) {
-            logger.warning("The field (targetLogIntakeURL) must be configured in the form <http|https>://<url>/");
+        }
+        if (DatadogHttpClient.isCollectBuildLogEnabled() && !validateTargetURL(httpInstance.getLogIntakeUrl())) {
+            logger.warning("Datadog Target Log Intake URL must be configured in the form <http|https>://<url>/");
         }
         if (!validateDefaultIntakeConnection(httpInstance.getUrl(), httpInstance.getApiKey())) {
             instance.setDefaultIntakeConnectionBroken(true);
@@ -140,13 +143,9 @@ public class DatadogHttpClient implements DatadogClient {
         return;
     }
 
-    public static boolean validateTargetApiURL(String targetApiURL) {
+    public static boolean validateTargetURL(String targetApiURL) {
         //TODO: Add more validation
         return targetApiURL.contains("http");
-    }
-
-    public static boolean validateTargetLogIntakeURL(String logIntakeUrl) {
-        return logIntakeUrl.contains("http");
     }
 
     public String getUrl() {
@@ -611,6 +610,11 @@ public class DatadogHttpClient implements DatadogClient {
             this.jenkinsVersion =  Jenkins.VERSION;
         }
         return this.jenkinsVersion;
+    }
+
+    public static boolean isCollectBuildLogEnabled(){
+        return DatadogUtilities.getDatadogGlobalDescriptor() != null &&
+                DatadogUtilities.getDatadogGlobalDescriptor().isCollectBuildLogs();
     }
 
 }
